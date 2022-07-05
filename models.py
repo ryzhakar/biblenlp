@@ -35,10 +35,10 @@ class Word(Corpus):
     morphs: Optional[Sequence[str]] = list()
 
     def get_lemmas(self):
-        return self.source_strongs_number
+        return self.lemmas
 
     def get_morphs(self):
-        return self.source_text
+        return self.morphs
     
     def get_refers(self):
         pass
