@@ -30,7 +30,6 @@ class Corpus(BaseModel, ABC):
 class Word(Corpus):
     """A unit of text."""
 
-    source: str
     lemmas: Optional[Sequence[str]] = list()
     morphs: Optional[Sequence[str]] = list()
 
@@ -44,7 +43,7 @@ class Word(Corpus):
         pass
 
     def get_string(self):
-        return self.source
+        return self.id
 
 
 class Verse(Corpus):
@@ -99,3 +98,20 @@ class Book(Corpus):
 
     def get_string(self):
         return ' '.join([chapter.get_string() for chapter in self.chapters])
+
+class Bible(Corpus):
+    """A collection of books."""
+
+    books: Sequence[Book]
+
+    def get_lemmas(self):
+        return [book.get_lemmas() for book in self.books]
+
+    def get_morphs(self):
+        return [book.get_morphs() for book in self.books]
+
+    def get_refers(self):
+        return [book.get_refers() for book in self.books]
+
+    def get_string(self):
+        return ' '.join([book.get_string() for book in self.books])
