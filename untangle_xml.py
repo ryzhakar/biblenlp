@@ -65,9 +65,15 @@ def separate_verse(line: str) -> Sequence[str]:
 def separate_original_words(line: str) -> Sequence[Sequence[str]]:
     """Returns a tuple of lists of original words and of everything else"""
     words = re.findall(r'<w.+?/*>.+?</w>', line)
-    stuff = re.split(r'<w.+?/*>.+?</w>', line)
+    
+    # Other info in the verses can be retained,
+    # but changes structure of the file
+    # stuff = re.split(r'<w.+?/*>.+?</w>', line)
+    # return (words, stuff)
+    if not words:
+        return ['',]
 
-    return (words, stuff)
+    return words
 
 def parse_verses(lines: Sequence[str]) -> Sequence[dict]:
     """Parses a verse into a dict"""
@@ -125,10 +131,11 @@ def untangle_osis(file_wo_ext: str):
     lines = filter_lines(['div', 'chapter', 'verse'], lines, specific_filtering)
     layers = build_raw_structure(['div', 'chapter'], lines, parse_verses)
     layers = unify_structure(layers)
-    to_json(f'{file_wo_ext}.json', layers)
+    return layers
 
 
 
 if __name__ == "__main__":
-    file_wo_ext = input('Enter the file name without extension: ')
-    untangle_osis(file_wo_ext)
+    pass
+    #file_wo_ext = input('Enter the file name without extension: ')
+    #to_json(f'{file_wo_ext}.json', untangle_osis(file_wo_ext))
