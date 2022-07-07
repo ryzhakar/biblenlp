@@ -1,6 +1,7 @@
 """This script targets building a json structure book-chapter-verse-originalwords.
-Inner verse structure besides the original words is not discarded, but information is somewhat preserved.
-Any other information is explicitly filtered out.
+
+Other information is somewhat preserved, if not explicitly discarded.
+Inner verse structure besides the original words is lost
 
 Some of the functions below are reusable.
 """
