@@ -1,7 +1,7 @@
 from textwrap import indent
 from typing import Sequence
 from bs4 import BeautifulSoup
-from models import Bible, Book, Chapter, Verse, Word
+from .models import Bible, Book, Chapter, Verse, Word
 
 def read_all_xml_tags(xml_string: str):
     soup = BeautifulSoup(xml_string, 'xml')
