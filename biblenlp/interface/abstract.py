@@ -28,7 +28,7 @@ class Corpus(BaseModel, ABC):
         pass
     
     @abstractmethod
-    def list_children(self) -> Sequence:
+    def list_children(self):
         pass
 
 

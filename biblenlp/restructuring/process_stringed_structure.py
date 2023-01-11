@@ -1,7 +1,7 @@
 from textwrap import indent
 from typing import Sequence
 from bs4 import BeautifulSoup
-from .models import Bible, Book, Chapter, Verse, Word
+from biblenlp.interface.models import Bible, Book, Chapter, Verse, Word
 
 def read_all_xml_tags(xml_string: str):
     soup = BeautifulSoup(xml_string, 'xml')
@@ -24,7 +24,7 @@ def restructure_soup_word(xml_string: str) -> Word:
     lemmas = get_split(attrs,'lemma')
     morphs = get_split(attrs,'morph')
     restructured = {
-            'id': text,
+            'identificator': text,
             'lemmas': lemmas,
             'morphs': morphs,
         }
@@ -35,7 +35,7 @@ def restructure_soup_verse(xml_string: str, children: Sequence[str]) -> Verse:
     attrs = read_all_xml_tags(xml_string)[0].attrs
     words = [restructure_soup_word(word) for word in children if word]
     restructured = {
-            'id': attrs['osisID'],
+            'identificator': attrs['osisID'],
             'words': words,
         }
     return Verse(**restructured)
@@ -44,7 +44,7 @@ def restructure_soup_chapter(xml_string: str, children: dict[str, Sequence[str]]
     attrs = read_all_xml_tags(xml_string)[0].attrs
     verses = [restructure_soup_verse(a, b) for a, b in children.items()]
     restructured = {
-            'id': attrs['osisID'],
+            'identificator': attrs['osisID'],
             'verses': verses,
         }
     return Chapter(**restructured)
@@ -53,7 +53,7 @@ def restructure_soup_book(xml_string: str, children: dict[str, dict[str, Sequenc
     attrs = read_all_xml_tags(xml_string)[0].attrs
     chapters = [restructure_soup_chapter(a, b) for a, b in children.items()]
     restructured = {
-            'id': attrs['osisID'],
+            'identificator': attrs['osisID'],
             'chapters': chapters,
         }
     return Book(**restructured)
@@ -61,19 +61,9 @@ def restructure_soup_book(xml_string: str, children: dict[str, dict[str, Sequenc
 def restructure_soup_bible(children: dict[str, dict[str, dict[str, Sequence[str]]]]) -> Bible:
     books = [restructure_soup_book(a, b) for a, b in children.items()]
     restructured = {
-            'id': 'BibleKJV',
+            'identificator': 'BibleKJV',
             'books': books,
         }
     return Bible(**restructured)
 
 
-if __name__ == "__main__":
-    original = input("Path to the original XML: ")
-    filename = input("Path for the new file: ")
-    from untangle_xml import untangle_osis
-    bible = untangle_osis(original)
-    pybible = restructure_soup_bible(bible) # type: ignore
-
-    with open(filename, 'w+') as f:
-        j = pybible.json(indent=0)
-        f.write(j)

@@ -30,8 +30,8 @@ class Word(Corpus):
 class Verse(Corpus):
     """An indexed collection of words."""
     
-    words: list[Word]
-    references: list[str]
+    words: list[Word] = []
+    references: list[str] = []
 
     def get_lemmas(self):
         return [x.get_lemmas() for x in self.words]

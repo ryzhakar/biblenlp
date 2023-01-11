@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 pydantic = "^1.10.4"
 bs4 = "^0.0.1"
+lxml = "^4.9.2"
 
 
 [tool.poetry.group.dev.dependencies]
