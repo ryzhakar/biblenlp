@@ -1,45 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Optional, Sequence
-from pydantic import BaseModel
-
-
-
-
-class Corpus(BaseModel, ABC):
-    """A corpus is a collection of words."""
-
-    id: str
-
-    @abstractmethod
-    def get_lemmas(self):
-        pass
-
-    @abstractmethod
-    def get_refers(self):
-        pass
-
-    @abstractmethod
-    def get_morphs(self):
-        pass
-
-    @abstractmethod
-    def get_string(self):
-        pass
-
-    @abstractmethod
-    def as_dict(self):
-        pass
-    
-    @abstractmethod
-    def list_children(self) -> Sequence:
-        pass
+from biblenlp.interface.abstract import Corpus
 
 
 class Word(Corpus):
     """A unit of text."""
 
-    lemmas: Optional[Sequence[str]] = list()
-    morphs: Optional[Sequence[str]] = list()
+    lemmas: list[str]
+    morphs: list[str]
 
     def get_lemmas(self):
         return self.lemmas
@@ -51,21 +17,21 @@ class Word(Corpus):
         pass
 
     def get_string(self):
-        return self.id
+        return self.identificator
 
     def as_dict(self) -> dict:
         return {
-            self.id: {"lemmas": self.lemmas, "morphs": self.morphs}
+            self.identificator: {"lemmas": self.lemmas, "morphs": self.morphs}
             }
 
-    def list_children(self) -> Sequence:
+    def list_children(self) -> list:
         return list()
 
 class Verse(Corpus):
     """An indexed collection of words."""
     
-    words: Sequence[Word]
-    references: Optional[Sequence[str]] = list()
+    words: list[Word]
+    references: list[str]
 
     def get_lemmas(self):
         return [x.get_lemmas() for x in self.words]
@@ -80,15 +46,15 @@ class Verse(Corpus):
         return ' '.join([x.get_string() for x in self.words])
 
     def as_dict(self) -> dict:
-        return {x.id: x for x in self.words}
+        return {x.identificator: x for x in self.words}
 
-    def list_children(self) -> Sequence:
-        return [x.id for x in self.words]
+    def list_children(self) -> list:
+        return [x.identificator for x in self.words]
 
 class Chapter(Corpus):
     """A collection of verses."""
 
-    verses: Sequence[Verse]
+    verses: list[Verse]
 
     def get_lemmas(self):
         return [verse.get_lemmas() for verse in self.verses]
@@ -103,15 +69,15 @@ class Chapter(Corpus):
         return ' '.join([x.get_string() for x in self.verses])
 
     def as_dict(self) -> dict:
-        return {x.id: x for x in self.verses}
+        return {x.identificator: x for x in self.verses}
 
-    def list_children(self) -> Sequence:
-        return [x.id for x in self.verses]
+    def list_children(self) -> list:
+        return [x.identificator for x in self.verses]
 
 class Book(Corpus):
     """A collection of chapters."""
 
-    chapters: Sequence[Chapter]
+    chapters: list[Chapter]
 
     def get_lemmas(self):
         return [x.get_lemmas() for x in self.chapters]
@@ -126,15 +92,15 @@ class Book(Corpus):
         return ' '.join([chapter.get_string() for chapter in self.chapters])
 
     def as_dict(self) -> dict:
-        return {x.id: x for x in self.chapters}
+        return {x.identificator: x for x in self.chapters}
 
-    def list_children(self) -> Sequence:
-        return [x.id for x in self.chapters]
+    def list_children(self) -> list:
+        return [x.identificator for x in self.chapters]
 
 class Bible(Corpus):
     """A collection of books."""
 
-    books: Sequence[Book]
+    books: list[Book]
 
     def get_lemmas(self):
         return [x.get_lemmas() for x in self.books]
@@ -149,10 +115,10 @@ class Bible(Corpus):
         return ' '.join([book.get_string() for book in self.books])
     
     def as_dict(self) -> dict:
-        return {x.id: x for x in self.books}
+        return {x.identificator: x for x in self.books}
 
-    def list_children(self) -> Sequence:
-        return [x.id for x in self.books]
+    def list_children(self) -> list:
+        return [x.identificator for x in self.books]
 
     def select_corpus(self, reference: str):
         corpus = self
@@ -165,4 +131,5 @@ class Bible(Corpus):
             corpus = corpus.as_dict().get(local_reference)  # type: ignore
         
         return corpus
+
 
