@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
@@ -8,15 +9,15 @@ class CorpusABC(BaseModel, ABC):
     identificator: str
 
     @abstractmethod
-    def get_lemmas(self):
+    def get_lemmas(self) -> Iterator[str]:
         pass
 
     @abstractmethod
-    def get_refers(self):
+    def get_refers(self) -> Iterator[str]:
         pass
 
     @abstractmethod
-    def get_morphs(self):
+    def get_morphs(self) -> Iterator[str]:
         pass
 
     @abstractmethod

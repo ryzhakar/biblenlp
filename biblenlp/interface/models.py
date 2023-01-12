@@ -12,11 +12,11 @@ class Word(CorpusABC):
     def get_lemmas(self) -> Iterator[str]:
         return iter(self.lemmas)
 
-    def get_morphs(self):
-        return self.morphs
+    def get_morphs(self) -> Iterator[str]:
+        return iter(self.morphs)
     
-    def get_refers(self):
-        pass
+    def get_refers(self) -> Iterator[str]:
+        return iter(()) 
 
     def get_string(self):
         return self.identificator
@@ -41,11 +41,14 @@ class Verse(CorpusABC):
             for x in self.words
         )
 
-    def get_morphs(self):
-        return [x.get_morphs() for x in self.words]
+    def get_morphs(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_morphs()
+            for x in self.words
+        )
 
-    def get_refers(self):
-        return self.references
+    def get_refers(self) -> Iterator[str]:
+        return iter(self.references)
 
     def get_string(self):
         return ' '.join([x.get_string() for x in self.words])
@@ -67,11 +70,16 @@ class Chapter(CorpusABC):
             for verse in self.verses
         )
 
-    def get_morphs(self):
-        return [x.get_morphs() for x in self.verses]
+    def get_morphs(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_morphs() for x in self.verses
+        )
 
-    def get_refers(self):
-        return [x.get_refers() for x in self.verses]
+    def get_refers(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_refers()
+            for x in self.verses
+        )
 
     def get_string(self):
         return ' '.join([x.get_string() for x in self.verses])
@@ -93,11 +101,17 @@ class Book(CorpusABC):
             for x in self.chapters
         )
 
-    def get_morphs(self):
-        return [x.get_morphs() for x in self.chapters]
+    def get_morphs(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_morphs()
+            for x in self.chapters
+        )
 
-    def get_refers(self):
-        return [x.get_refers() for x in self.chapters]
+    def get_refers(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_refers()
+            for x in self.chapters
+        )
 
     def get_string(self):
         return ' '.join([chapter.get_string() for chapter in self.chapters])
@@ -119,11 +133,15 @@ class Bible(CorpusABC):
             for x in self.books
         )
 
-    def get_morphs(self):
-        return [x.get_morphs() for x in self.books]
+    def get_morphs(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_morphs() for x in self.books
+        )
 
-    def get_refers(self):
-        return [x.get_refers() for x in self.books]
+    def get_refers(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_refers() for x in self.books
+        )
 
     def get_string(self):
         return ' '.join([book.get_string() for book in self.books])
