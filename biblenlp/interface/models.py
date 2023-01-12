@@ -1,5 +1,7 @@
 import itertools
 from collections.abc import Iterator
+
+
 from biblenlp.interface.abstract import CorpusABC
 
 
@@ -54,7 +56,7 @@ class Verse(CorpusABC):
 class Chapter(CorpusABC):
     """A mapping of verses."""
 
-    verses: dict[str, Verse]
+    verses: dict[int, Verse]
 
     def get_lemmas(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
@@ -77,12 +79,12 @@ class Chapter(CorpusABC):
         return ' '.join([x.get_string() for x in self.verses.values()])
 
     def list_children(self) -> list:
-        return [x.identificator for x in self.verses.values()]
+        return list(self.verses.keys())
 
 class Book(CorpusABC):
     """A collection of chapters."""
 
-    chapters: dict[str, Chapter]
+    chapters: dict[int, Chapter]
 
     def get_lemmas(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
@@ -106,7 +108,7 @@ class Book(CorpusABC):
         return ' '.join([chapter.get_string() for chapter in self.chapters.values()])
 
     def list_children(self) -> list:
-        return [x.identificator for x in self.chapters.values()]
+        return list(self.chapters.keys())
 
 class Bible(CorpusABC):
     """A collection of books."""
@@ -133,7 +135,7 @@ class Bible(CorpusABC):
         return ' '.join([book.get_string() for book in self.books.values()])
     
     def list_children(self) -> list:
-        return [x.identificator for x in self.books.values()]
+        return list(self.books.keys())
 
     def select_corpus(self, reference: str):
         corpus = self

@@ -35,7 +35,7 @@ def parse_from_xml_str_verse(xml_string: str, children: Sequence[str]) -> Verse:
     words = [parse_from_xml_str_word(word) for word in children if word]
     restructured = {
             'identificator': attrs['osisID'],
-            'words': {w.identificator: w for w in words},
+            'words': words,
         }
     return Verse.construct(**restructured)
 
@@ -44,7 +44,10 @@ def parse_from_xml_str_chapter(xml_string: str, children: dict[str, Sequence[str
     verses = [parse_from_xml_str_verse(a, b) for a, b in children.items()]
     restructured = {
             'identificator': attrs['osisID'],
-            'verses': {v.identificator: v for v in verses},
+            'verses': {
+                int(v.identificator.split('.')[-1]): v
+                for v in verses
+            },
         }
     return Chapter.construct(**restructured)
 
@@ -53,7 +56,10 @@ def parse_from_xml_str_book(xml_string: str, children: dict[str, dict[str, Seque
     chapters = [parse_from_xml_str_chapter(a, b) for a, b in children.items()]
     restructured = {
             'identificator': attrs['osisID'],
-            'chapters': {ch.identificator: ch for ch in chapters},
+            'chapters': {
+                int(ch.identificator.split('.')[-1]): ch
+                for ch in chapters
+            },
         }
     return Book.construct(**restructured)
 

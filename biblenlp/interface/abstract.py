@@ -8,6 +8,9 @@ class CorpusABC(BaseModel, ABC):
 
     identificator: str
 
+    def __hash__(self):
+        return hash(self.identificator)
+
     @abstractmethod
     def get_lemmas(self) -> Iterator[str]:
         pass
