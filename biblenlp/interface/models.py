@@ -1,14 +1,16 @@
-from biblenlp.interface.abstract import Corpus
+import itertools
+from collections.abc import Iterator
+from biblenlp.interface.abstract import CorpusABC
 
 
-class Word(Corpus):
+class Word(CorpusABC):
     """A unit of text."""
 
     lemmas: list[str]
     morphs: list[str]
 
-    def get_lemmas(self):
-        return self.lemmas
+    def get_lemmas(self) -> Iterator[str]:
+        return iter(self.lemmas)
 
     def get_morphs(self):
         return self.morphs
@@ -27,14 +29,17 @@ class Word(Corpus):
     def list_children(self) -> list:
         return list()
 
-class Verse(Corpus):
+class Verse(CorpusABC):
     """An indexed collection of words."""
     
     words: list[Word] = []
     references: list[str] = []
 
-    def get_lemmas(self):
-        return [x.get_lemmas() for x in self.words]
+    def get_lemmas(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_lemmas()
+            for x in self.words
+        )
 
     def get_morphs(self):
         return [x.get_morphs() for x in self.words]
@@ -51,13 +56,16 @@ class Verse(Corpus):
     def list_children(self) -> list:
         return [x.identificator for x in self.words]
 
-class Chapter(Corpus):
+class Chapter(CorpusABC):
     """A collection of verses."""
 
     verses: list[Verse]
 
-    def get_lemmas(self):
-        return [verse.get_lemmas() for verse in self.verses]
+    def get_lemmas(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            verse.get_lemmas()
+            for verse in self.verses
+        )
 
     def get_morphs(self):
         return [x.get_morphs() for x in self.verses]
@@ -74,13 +82,16 @@ class Chapter(Corpus):
     def list_children(self) -> list:
         return [x.identificator for x in self.verses]
 
-class Book(Corpus):
+class Book(CorpusABC):
     """A collection of chapters."""
 
     chapters: list[Chapter]
 
-    def get_lemmas(self):
-        return [x.get_lemmas() for x in self.chapters]
+    def get_lemmas(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_lemmas()
+            for x in self.chapters
+        )
 
     def get_morphs(self):
         return [x.get_morphs() for x in self.chapters]
@@ -97,13 +108,16 @@ class Book(Corpus):
     def list_children(self) -> list:
         return [x.identificator for x in self.chapters]
 
-class Bible(Corpus):
+class Bible(CorpusABC):
     """A collection of books."""
 
     books: list[Book]
 
-    def get_lemmas(self):
-        return [x.get_lemmas() for x in self.books]
+    def get_lemmas(self) -> Iterator[str]:
+        return itertools.chain.from_iterable(
+            x.get_lemmas()
+            for x in self.books
+        )
 
     def get_morphs(self):
         return [x.get_morphs() for x in self.books]

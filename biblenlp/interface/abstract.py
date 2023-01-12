@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
 
-class Corpus(BaseModel, ABC):
+class CorpusABC(BaseModel, ABC):
     """A corpus is a collection of words."""
 
     identificator: str
