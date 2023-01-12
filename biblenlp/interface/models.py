@@ -21,18 +21,13 @@ class Word(CorpusABC):
     def get_string(self):
         return self.identificator
 
-    def as_dict(self) -> dict:
-        return {
-            self.identificator: {"lemmas": self.lemmas, "morphs": self.morphs}
-            }
-
     def list_children(self) -> list:
         return list()
 
 class Verse(CorpusABC):
     """An indexed collection of words."""
     
-    words: list[Word] = []
+    words: list[Word]
     references: list[str] = []
 
     def get_lemmas(self) -> Iterator[str]:
@@ -53,104 +48,92 @@ class Verse(CorpusABC):
     def get_string(self):
         return ' '.join([x.get_string() for x in self.words])
 
-    def as_dict(self) -> dict:
-        return {x.identificator: x for x in self.words}
-
     def list_children(self) -> list:
         return [x.identificator for x in self.words]
 
 class Chapter(CorpusABC):
-    """A collection of verses."""
+    """A mapping of verses."""
 
-    verses: list[Verse]
+    verses: dict[str, Verse]
 
     def get_lemmas(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
             verse.get_lemmas()
-            for verse in self.verses
+            for verse in self.verses.values()
         )
 
     def get_morphs(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
-            x.get_morphs() for x in self.verses
+            x.get_morphs() for x in self.verses.values()
         )
 
     def get_refers(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
             x.get_refers()
-            for x in self.verses
+            for x in self.verses.values()
         )
 
     def get_string(self):
-        return ' '.join([x.get_string() for x in self.verses])
-
-    def as_dict(self) -> dict:
-        return {x.identificator: x for x in self.verses}
+        return ' '.join([x.get_string() for x in self.verses.values()])
 
     def list_children(self) -> list:
-        return [x.identificator for x in self.verses]
+        return [x.identificator for x in self.verses.values()]
 
 class Book(CorpusABC):
     """A collection of chapters."""
 
-    chapters: list[Chapter]
+    chapters: dict[str, Chapter]
 
     def get_lemmas(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
             x.get_lemmas()
-            for x in self.chapters
+            for x in self.chapters.values()
         )
 
     def get_morphs(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
             x.get_morphs()
-            for x in self.chapters
+            for x in self.chapters.values()
         )
 
     def get_refers(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
             x.get_refers()
-            for x in self.chapters
+            for x in self.chapters.values()
         )
 
     def get_string(self):
-        return ' '.join([chapter.get_string() for chapter in self.chapters])
-
-    def as_dict(self) -> dict:
-        return {x.identificator: x for x in self.chapters}
+        return ' '.join([chapter.get_string() for chapter in self.chapters.values()])
 
     def list_children(self) -> list:
-        return [x.identificator for x in self.chapters]
+        return [x.identificator for x in self.chapters.values()]
 
 class Bible(CorpusABC):
     """A collection of books."""
 
-    books: list[Book]
+    books: dict[str, Book]
 
     def get_lemmas(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
             x.get_lemmas()
-            for x in self.books
+            for x in self.books.values()
         )
 
     def get_morphs(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
-            x.get_morphs() for x in self.books
+            x.get_morphs() for x in self.books.values()
         )
 
     def get_refers(self) -> Iterator[str]:
         return itertools.chain.from_iterable(
-            x.get_refers() for x in self.books
+            x.get_refers() for x in self.books.values()
         )
 
     def get_string(self):
-        return ' '.join([book.get_string() for book in self.books])
+        return ' '.join([book.get_string() for book in self.books.values()])
     
-    def as_dict(self) -> dict:
-        return {x.identificator: x for x in self.books}
-
     def list_children(self) -> list:
-        return [x.identificator for x in self.books]
+        return [x.identificator for x in self.books.values()]
 
     def select_corpus(self, reference: str):
         corpus = self

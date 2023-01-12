@@ -25,10 +25,6 @@ class CorpusABC(BaseModel, ABC):
         pass
 
     @abstractmethod
-    def as_dict(self):
-        pass
-    
-    @abstractmethod
     def list_children(self):
         pass
 

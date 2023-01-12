@@ -35,7 +35,7 @@ def parse_from_xml_str_verse(xml_string: str, children: Sequence[str]) -> Verse:
     words = [parse_from_xml_str_word(word) for word in children if word]
     restructured = {
             'identificator': attrs['osisID'],
-            'words': words,
+            'words': {w.identificator: w for w in words},
         }
     return Verse.construct(**restructured)
 
@@ -44,7 +44,7 @@ def parse_from_xml_str_chapter(xml_string: str, children: dict[str, Sequence[str
     verses = [parse_from_xml_str_verse(a, b) for a, b in children.items()]
     restructured = {
             'identificator': attrs['osisID'],
-            'verses': verses,
+            'verses': {v.identificator: v for v in verses},
         }
     return Chapter.construct(**restructured)
 
@@ -53,7 +53,7 @@ def parse_from_xml_str_book(xml_string: str, children: dict[str, dict[str, Seque
     chapters = [parse_from_xml_str_chapter(a, b) for a, b in children.items()]
     restructured = {
             'identificator': attrs['osisID'],
-            'chapters': chapters,
+            'chapters': {ch.identificator: ch for ch in chapters},
         }
     return Book.construct(**restructured)
 
@@ -61,7 +61,7 @@ def parse_from_xml_str_bible(children: dict[str, dict[str, dict[str, Sequence[st
     books = [parse_from_xml_str_book(a, b) for a, b in children.items()]
     restructured = {
             'identificator': 'BibleKJV',
-            'books': books,
+            'books': {b.identificator: b for b in books},
         }
     return Bible.construct(**restructured)
 
