@@ -12,6 +12,9 @@ from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
 
+from .filter_functions import filter_lines
+from .filter_functions import starts_with_whitelisted
+
 
 # File management
 def to_json(filename, data):
@@ -24,48 +27,12 @@ def load_lines(filename):
         return f.read().split('\n')
 
 
-# Filtering
-def starts_with_tags(line: str, tags: Sequence[str]) -> bool:
-    if len(tags) > 1:
-        tags = '|'.join(tags)
-    else:
-        tags = tags[0]
-
-    return re.match(fr'\s*</*({tags})', line) is not None
-
-
-def except_stuff(line: str):
-    stuff = [
-        '<div type="colophon"',
-    ]
-    return any(line.startswith(x) for x in stuff)
-
-
-def specific_filtering(line: str, tags: Sequence[str]) -> bool:
-    """Combines starts_with_tags and except_stuff."""
-
-    return starts_with_tags(line, tags) and not except_stuff(line)
-
-
-def filter_lines(
-    tags: Sequence[str],
-    lines: Sequence[str],
-    filter_method,
-) -> Sequence[str]:
-    """Leaves only lines that start with specified tags."""
-
-    return [line for line in lines if filter_method(line, tags)]
-
 
 # Parsing in place
-def separate_verse(line: str) -> Sequence[str]:
+def separate_verse(line: str) -> list[str]:
     """Returns a list of <verse> tags and their contents."""
-    return [
-        x
-        for x in re.split(r'(<verse osisID.+?/>)(.+?)(<verse eID.+?/>)', line)
-        if x
-    ]
-
+    regex = r'(<verse osisID.+?/>)(.+?)(<verse eID.+?/>)'
+    return list(filter(None, re.split(regex, line)))
 
 def separate_original_words(line: str) -> Sequence[Sequence[str]]:
     """Returns a tuple of lists of original words and of everything else."""
@@ -80,7 +47,6 @@ def separate_original_words(line: str) -> Sequence[Sequence[str]]:
 
     return words
 
-
 def parse_verses(lines: Sequence[str]) -> Sequence[dict]:
     """Parses a verse into a dict."""
     w_sep_tags = [separate_verse(line) for line in lines]
@@ -93,13 +59,13 @@ def parse_verses(lines: Sequence[str]) -> Sequence[dict]:
 
 # Structuring
 def build_raw_structure(
-    tags: Sequence[str],
-    lines: Sequence[str],
+    tags: list[str],
+    lines: list[str],
     deepest_level_method,
 ) -> Sequence[Any]:
     """Constructs a list of dicts with tag lines as keys and other lines as
     values."""
-    layer = []
+    layer: list[dict[str, str]] = []
     tagline = ''
     if not tags:
         return deepest_level_method(lines)
@@ -107,7 +73,7 @@ def build_raw_structure(
     for line in lines:
         if line.lstrip().startswith(f'<{tags[0]}'):
             tagline = line
-            layer.append({tagline: list()})
+            layer.append({tagline: []})
         elif line.lstrip().startswith(f'</{tags[0]}'):
             layer[-1][tagline] = build_raw_structure(
                 tags[1:], layer[-1][tagline], deepest_level_method,
@@ -136,7 +102,7 @@ def untangle_osis(filename: str):
     lines = load_lines(filename)
     lines = filter_lines(
         ['div', 'chapter', 'verse'],
-        lines, specific_filtering,
+        lines, starts_with_whitelisted,
     )
     layers = build_raw_structure(['div', 'chapter'], lines, parse_verses)
     layers = unify_structure(layers)
