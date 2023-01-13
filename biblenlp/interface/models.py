@@ -1,7 +1,6 @@
 import itertools
 from collections.abc import Iterator
 
-
 from biblenlp.interface.abstract import CorpusABC
 
 
@@ -16,9 +15,9 @@ class Word(CorpusABC):
 
     def get_morphs(self) -> Iterator[str]:
         return iter(self.morphs)
-    
+
     def get_refers(self) -> Iterator[str]:
-        return iter(()) 
+        return iter(())
 
     def get_string(self):
         return self.identificator
@@ -26,9 +25,10 @@ class Word(CorpusABC):
     def list_children(self) -> list:
         return list()
 
+
 class Verse(CorpusABC):
     """An indexed collection of words."""
-    
+
     words: list[Word]
     references: list[str] = []
 
@@ -52,6 +52,7 @@ class Verse(CorpusABC):
 
     def list_children(self) -> list:
         return [x.identificator for x in self.words]
+
 
 class Chapter(CorpusABC):
     """A mapping of verses."""
@@ -80,6 +81,7 @@ class Chapter(CorpusABC):
 
     def list_children(self) -> list:
         return list(self.verses.keys())
+
 
 class Book(CorpusABC):
     """A collection of chapters."""
@@ -110,6 +112,7 @@ class Book(CorpusABC):
     def list_children(self) -> list:
         return list(self.chapters.keys())
 
+
 class Bible(CorpusABC):
     """A collection of books."""
 
@@ -133,7 +136,7 @@ class Bible(CorpusABC):
 
     def get_string(self):
         return ' '.join([book.get_string() for book in self.books.values()])
-    
+
     def list_children(self) -> list:
         return list(self.books.keys())
 
@@ -146,7 +149,5 @@ class Bible(CorpusABC):
             indB = index + 1
             local_reference = '.'.join(ref_split[indA:indB])
             corpus = corpus.as_dict().get(local_reference)  # type: ignore
-        
+
         return corpus
-
-

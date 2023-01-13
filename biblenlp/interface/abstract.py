@@ -1,5 +1,7 @@
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Iterator
-from abc import ABC, abstractmethod
+
 from pydantic import BaseModel
 
 
@@ -30,5 +32,3 @@ class CorpusABC(BaseModel, ABC):
     @abstractmethod
     def list_children(self):
         pass
-
-

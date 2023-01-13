@@ -1,2 +1,2 @@
-from .untangle_xml import untangle_osis
 from .process_stringed_structure import parse_from_xml_str_bible
+from .untangle_xml import untangle_osis
