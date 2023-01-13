@@ -14,7 +14,7 @@ from typing import Any
 
 from .filter_functions import filter_lines
 from .filter_functions import starts_with_whitelisted
-
+from devtools import debug
 
 # File management
 def to_json(filename, data):
@@ -29,33 +29,30 @@ def load_lines(filename):
 
 
 # Parsing in place
-def separate_verse(line: str) -> list[str]:
-    """Returns a list of <verse> tags and their contents."""
+def dismember_raw_verse(line: str) -> tuple[str, str, str]:
+    """Splits the start and end tags from the verse text."""
     regex = r'(<verse osisID.+?/>)(.+?)(<verse eID.+?/>)'
-    return list(filter(None, re.split(regex, line)))
+    return tuple(filter(None, re.split(regex, line)))
 
-def separate_original_words(line: str) -> Sequence[Sequence[str]]:
-    """Returns a tuple of lists of original words and of everything else."""
+def find_raw_tagged_words(line: str) -> list[str]:
+    """Finds tagged words in a verses data protion."""
     words = re.findall(r'<w.+?/*>.+?</w>', line)
+    return words or ['']
 
-    # Other info in the verses can be retained,
-    # but changes structure of the file
-    # stuff = re.split(r'<w.+?/*>.+?</w>', line)
-    # return (words, stuff)
-    if not words:
-        return ['']
+def parse_verseline_as_pair(
+    line: str,
+) -> tuple[str, list[str]]:
+    """Parses a verse into a tuple of the verse tag and the words."""
+    dismembered = dismember_raw_verse(line)
+    tagged_words = find_raw_tagged_words(dismembered[1])
+    return (dismembered[0], tagged_words)
 
-    return words
-
-def parse_verses(lines: Sequence[str]) -> Sequence[dict]:
-    """Parses a verse into a dict."""
-    w_sep_tags = [separate_verse(line) for line in lines]
-    named_array_words = [
-        {tg[0]: separate_original_words(tg[1])}
-        for tg in w_sep_tags
-    ]
-    return named_array_words
-
+def parse_multiple_verselines(
+    lines: list[str],
+) -> dict[str, list[str]]:
+    """Parses a verses array into a dict of raw containers."""
+    verse_pairs = [parse_verseline_as_pair(line) for line in lines]
+    return dict(verse_pairs)
 
 # Structuring
 def build_raw_structure(
