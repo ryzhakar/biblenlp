@@ -1,23 +1,10 @@
-import json
 import re
 from collections.abc import Iterable
 
-from .filter_functions import filter_lines
-from .filter_functions import starts_with_whitelisted
-
-# File management
-
-
-def to_json(filename, data):
-    with open(filename, 'w+') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-
-def load_lines(filename):
-    with open(filename) as f:
-        return f.read().split('\n')
-
-# Parsing in place
+from biblenlp.interface.types import RawBibleType
+from biblenlp.parsing.file_io import load_lines
+from biblenlp.parsing.filter_functions import filter_lines
+from biblenlp.parsing.filter_functions import starts_with_whitelisted
 
 
 def dismember_raw_verse(line: str) -> tuple[str, str, str]:
@@ -39,9 +26,6 @@ def parse_verseline_as_pair(
     dismembered = dismember_raw_verse(line)
     tagged_words = find_raw_tagged_words(dismembered[1])
     return (dismembered[0], tagged_words)
-
-
-RawBibleType = dict[str, dict[str, dict[str, list[str]]]]
 
 
 def structure_from(

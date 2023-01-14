@@ -5,6 +5,10 @@ from biblenlp.interface.models import Book
 from biblenlp.interface.models import Chapter
 from biblenlp.interface.models import Verse
 from biblenlp.interface.models import Word
+from biblenlp.interface.types import RawBibleType
+from biblenlp.interface.types import RawBookType
+from biblenlp.interface.types import RawChapterType
+from biblenlp.interface.types import RawVerseType
 
 
 def read_all_xml_tags(xml_string: str):
@@ -35,10 +39,7 @@ def parse_from_xml_str_word(xml_string: str) -> Word:
     )
 
 
-RawWordsType = list[str]
-
-
-def parse_from_xml_str_verse(xml_string: str, xml_words: RawWordsType) -> Verse:
+def parse_from_xml_str_verse(xml_string: str, xml_words: RawVerseType) -> Verse:
     """Restructures a single XML <verse> tag into a Verse object."""
     attrs = read_all_xml_tags(xml_string)[0].attrs
     words = [parse_from_xml_str_word(word) for word in filter(None, xml_words)]
@@ -46,9 +47,6 @@ def parse_from_xml_str_verse(xml_string: str, xml_words: RawWordsType) -> Verse:
         identificator=attrs['osisID'],
         words=words,
     )
-
-
-RawChapterType = dict[str, RawWordsType]
 
 
 def parse_from_xml_str_chapter(xml_string: str, xml_verses: RawChapterType) -> Chapter:
@@ -66,9 +64,6 @@ def parse_from_xml_str_chapter(xml_string: str, xml_verses: RawChapterType) -> C
     )
 
 
-RawBookType = dict[str, RawChapterType]
-
-
 def parse_from_xml_str_book(xml_string: str, xml_chapters: RawBookType) -> Book:
     book_identificator = read_all_xml_tags(xml_string)[0].attrs['osisID']
     chapters = (
@@ -82,9 +77,6 @@ def parse_from_xml_str_book(xml_string: str, xml_chapters: RawBookType) -> Book:
             for ch in chapters
         },
     )
-
-
-RawBibleType = dict[str, RawBookType]
 
 
 def parse_from_xml_str_bible(children: RawBibleType) -> Bible:
