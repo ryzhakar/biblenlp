@@ -140,14 +140,7 @@ class Bible(CorpusABC):
     def list_children(self) -> list:
         return list(self.books.keys())
 
-    def select_corpus(self, reference: str):
-        corpus = self
-        ref_split = reference.split('.')
-        length = len(ref_split)
-        for index in range(length):
-            indA = 0 - length
-            indB = index + 1
-            local_reference = '.'.join(ref_split[indA:indB])
-            corpus = corpus.as_dict().get(local_reference)  # type: ignore
-
-        return corpus
+    def save(self, filename: str, indent: int = 2):
+        """Saves the Bible object to the specified JSON file."""
+        with open(filename, 'w') as f:
+            f.write(self.json(indent=indent))
