@@ -145,7 +145,7 @@ class Bible(CorpusABC):
         ref_split = reference.split('.')
         length = len(ref_split)
         for index in range(length):
-            indA = 0-length
+            indA = 0 - length
             indB = index + 1
             local_reference = '.'.join(ref_split[indA:indB])
             corpus = corpus.as_dict().get(local_reference)  # type: ignore

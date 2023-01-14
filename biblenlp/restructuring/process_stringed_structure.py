@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 from bs4 import BeautifulSoup
 
 from biblenlp.interface.models import Bible
@@ -14,7 +12,7 @@ def read_all_xml_tags(xml_string: str):
     return list(soup.find_all())
 
 
-def get_split(dictionary: dict, key: str) -> list:
+def get_split(dictionary: dict, key: str) -> list[str]:
     """Returns a list of values for a given key in a dictionary."""
     value = dictionary.get(key)
     if value is None:
@@ -25,61 +23,76 @@ def get_split(dictionary: dict, key: str) -> list:
 
 def parse_from_xml_str_word(xml_string: str) -> Word:
     """Restructures a single XML <w> tag into a Word object."""
-    soup = read_all_xml_tags(xml_string)
-    text = soup[0].text
-    attrs = soup[0].attrs
-    # Split lemmas and morphs
+    xml_soup = read_all_xml_tags(xml_string)
+    text = xml_soup[0].text
+    attrs = xml_soup[0].attrs
     lemmas = get_split(attrs, 'lemma')
     morphs = get_split(attrs, 'morph')
-    restructured = {
-        'identificator': text,
-        'lemmas': lemmas,
-        'morphs': morphs,
-    }
-    return Word.construct(**restructured)
+    return Word.construct(
+        identificator=text,
+        lemmas=lemmas,
+        morphs=morphs,
+    )
 
 
-def parse_from_xml_str_verse(xml_string: str, children: Sequence[str]) -> Verse:
+RawWordsType = list[str]
+
+
+def parse_from_xml_str_verse(xml_string: str, xml_words: RawWordsType) -> Verse:
     """Restructures a single XML <verse> tag into a Verse object."""
     attrs = read_all_xml_tags(xml_string)[0].attrs
-    words = [parse_from_xml_str_word(word) for word in children if word]
-    restructured = {
-        'identificator': attrs['osisID'],
-        'words': words,
-    }
-    return Verse.construct(**restructured)
+    words = [parse_from_xml_str_word(word) for word in filter(None, xml_words)]
+    return Verse.construct(
+        identificator=attrs['osisID'],
+        words=words,
+    )
 
 
-def parse_from_xml_str_chapter(xml_string: str, children: dict[str, Sequence[str]]) -> Chapter:
-    attrs = read_all_xml_tags(xml_string)[0].attrs
-    verses = [parse_from_xml_str_verse(a, b) for a, b in children.items()]
-    restructured = {
-        'identificator': attrs['osisID'],
-        'verses': {
-            int(v.identificator.split('.')[-1]): v
-            for v in verses
+RawChapterType = dict[str, RawWordsType]
+
+
+def parse_from_xml_str_chapter(xml_string: str, xml_verses: RawChapterType) -> Chapter:
+    chapter_identificator = read_all_xml_tags(xml_string)[0].attrs['osisID']
+    verses = (
+        parse_from_xml_str_verse(raw_verse, raw_words)
+        for raw_verse, raw_words in xml_verses.items()
+    )
+    return Chapter.construct(
+        identificator=chapter_identificator,
+        verses={
+            int(verse.identificator.split('.')[-1]): verse
+            for verse in verses
         },
-    }
-    return Chapter.construct(**restructured)
+    )
 
 
-def parse_from_xml_str_book(xml_string: str, children: dict[str, dict[str, Sequence[str]]]) -> Book:
-    attrs = read_all_xml_tags(xml_string)[0].attrs
-    chapters = [parse_from_xml_str_chapter(a, b) for a, b in children.items()]
-    restructured = {
-        'identificator': attrs['osisID'],
-        'chapters': {
+RawBookType = dict[str, RawChapterType]
+
+
+def parse_from_xml_str_book(xml_string: str, xml_chapters: RawBookType) -> Book:
+    book_identificator = read_all_xml_tags(xml_string)[0].attrs['osisID']
+    chapters = (
+        parse_from_xml_str_chapter(a, b)
+        for a, b in xml_chapters.items()
+    )
+    return Book.construct(
+        identificator=book_identificator,
+        chapters={
             int(ch.identificator.split('.')[-1]): ch
             for ch in chapters
         },
-    }
-    return Book.construct(**restructured)
+    )
 
 
-def parse_from_xml_str_bible(children: dict[str, dict[str, dict[str, Sequence[str]]]]) -> Bible:
-    books = [parse_from_xml_str_book(a, b) for a, b in children.items()]
-    restructured = {
-        'identificator': 'BibleKJV',
-        'books': {b.identificator: b for b in books},
-    }
-    return Bible.construct(**restructured)
+RawBibleType = dict[str, RawBookType]
+
+
+def parse_from_xml_str_bible(children: RawBibleType) -> Bible:
+    books = (
+        parse_from_xml_str_book(a, b)
+        for a, b in children.items()
+    )
+    return Bible.construct(
+        identificator='BibleKJV',
+        books={b.identificator: b for b in books},
+    )
