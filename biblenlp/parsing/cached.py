@@ -6,7 +6,7 @@ from biblenlp.parsing.parse_structured import parse_from_xml_str_bible
 from biblenlp.parsing.structure_xml import load_raw_structure_from
 
 
-@lru_cache()
+@lru_cache
 def get_bible(filename: str) -> Bible:
     """Loads the Bible object from the specified XML file."""
     # Check if the file exists

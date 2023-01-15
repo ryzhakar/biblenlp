@@ -1,9 +1,10 @@
 import itertools
 from collections import Counter
 from collections.abc import Iterator
-from functools import reduce
 
 from biblenlp.interface.abstract import CorpusABC
+from biblenlp.vectorization.counters import add_the
+from biblenlp.vectorization.counters import count_the
 
 
 class Word(CorpusABC):
@@ -26,10 +27,11 @@ class Word(CorpusABC):
 
     def list_children(self) -> list:
         return list()
-    
+
     @property
     def counter(self) -> Counter[str]:
-        return Counter(self.get_lemmas())
+        immutable_lemmas = tuple(self.lemmas)
+        return count_the(elements=immutable_lemmas)
 
 
 class Verse(CorpusABC):
@@ -62,7 +64,7 @@ class Verse(CorpusABC):
     @property
     def counter(self) -> Counter[str]:
         subcounters = [x.counter for x in self.words]
-        return reduce(lambda x, y: x + y, subcounters, Counter())
+        return add_the(counters=subcounters, with_key=self.identificator)
 
 
 class Chapter(CorpusABC):
@@ -96,8 +98,7 @@ class Chapter(CorpusABC):
     @property
     def counter(self) -> Counter[str]:
         subcounters = [x.counter for x in self.verses.values()]
-        return reduce(lambda x, y: x + y, subcounters, Counter())
-
+        return add_the(counters=subcounters, with_key=self.identificator)
 
 
 class Book(CorpusABC):
@@ -132,8 +133,7 @@ class Book(CorpusABC):
     @property
     def counter(self) -> Counter[str]:
         subcounters = [x.counter for x in self.chapters.values()]
-        return reduce(lambda x, y: x + y, subcounters, Counter())
-
+        return add_the(counters=subcounters, with_key=self.identificator)
 
 
 class Bible(CorpusABC):
@@ -166,7 +166,7 @@ class Bible(CorpusABC):
     @property
     def counter(self) -> Counter[str]:
         subcounters = [x.counter for x in self.books.values()]
-        return reduce(lambda x, y: x + y, subcounters, Counter())
+        return add_the(counters=subcounters, with_key=self.identificator)
 
     def save(self, filename: str, indent: int = 2):
         """Saves the Bible object to the specified JSON file."""
