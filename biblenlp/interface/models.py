@@ -1,5 +1,7 @@
 import itertools
+from collections import Counter
 from collections.abc import Iterator
+from functools import reduce
 
 from biblenlp.interface.abstract import CorpusABC
 
@@ -24,6 +26,10 @@ class Word(CorpusABC):
 
     def list_children(self) -> list:
         return list()
+    
+    @property
+    def counter(self) -> Counter[str]:
+        return Counter(self.get_lemmas())
 
 
 class Verse(CorpusABC):
@@ -53,6 +59,11 @@ class Verse(CorpusABC):
     def list_children(self) -> list:
         return [x.identificator for x in self.words]
 
+    @property
+    def counter(self) -> Counter[str]:
+        subcounters = [x.counter for x in self.words]
+        return reduce(lambda x, y: x + y, subcounters, Counter())
+
 
 class Chapter(CorpusABC):
     """A mapping of verses."""
@@ -81,6 +92,12 @@ class Chapter(CorpusABC):
 
     def list_children(self) -> list:
         return list(self.verses.keys())
+
+    @property
+    def counter(self) -> Counter[str]:
+        subcounters = [x.counter for x in self.verses.values()]
+        return reduce(lambda x, y: x + y, subcounters, Counter())
+
 
 
 class Book(CorpusABC):
@@ -112,6 +129,12 @@ class Book(CorpusABC):
     def list_children(self) -> list:
         return list(self.chapters.keys())
 
+    @property
+    def counter(self) -> Counter[str]:
+        subcounters = [x.counter for x in self.chapters.values()]
+        return reduce(lambda x, y: x + y, subcounters, Counter())
+
+
 
 class Bible(CorpusABC):
     """A collection of books."""
@@ -139,6 +162,11 @@ class Bible(CorpusABC):
 
     def list_children(self) -> list:
         return list(self.books.keys())
+
+    @property
+    def counter(self) -> Counter[str]:
+        subcounters = [x.counter for x in self.books.values()]
+        return reduce(lambda x, y: x + y, subcounters, Counter())
 
     def save(self, filename: str, indent: int = 2):
         """Saves the Bible object to the specified JSON file."""
