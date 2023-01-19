@@ -1,4 +1,3 @@
-import itertools
 from collections import Counter
 from collections.abc import Iterator
 
@@ -7,6 +6,7 @@ from pydantic import BaseModel
 from biblenlp.interface.abstract import CorpusABC
 from biblenlp.interface.abstract import VectorizibleABC
 from biblenlp.vectorization.counters import count_the
+from biblenlp.vectorization.unique import singularize_the
 
 
 class Word(BaseModel, VectorizibleABC):
@@ -25,6 +25,13 @@ class Word(BaseModel, VectorizibleABC):
     def counter(self) -> Counter[str]:
         immutable_lemmas = self.lemmas
         return count_the(elements=immutable_lemmas)
+
+    @property
+    def unique_lemmas(self) -> set[str]:
+        return singularize_the(
+            elements=self.lemmas,
+            with_key=self.identificator,
+        )
 
 
 class Verse(CorpusABC):

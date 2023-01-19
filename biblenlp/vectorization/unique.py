@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from functools import reduce
 
-from utility.decorators import cache_by_key
+from biblenlp.utility.decorators import cache_by_key
 
 
 @cache_by_key
