@@ -2,14 +2,16 @@ import itertools
 from collections import Counter
 from collections.abc import Iterator
 
+from pydantic import BaseModel
+
 from biblenlp.interface.abstract import CorpusABC
-from biblenlp.vectorization.counters import add_the
+from biblenlp.interface.abstract import VectorizibleABC
 from biblenlp.vectorization.counters import count_the
 
 
-class Word(CorpusABC):
+class Word(BaseModel, VectorizibleABC):
     """A unit of text."""
-
+    identificator: str
     lemmas: list[str]
     morphs: list[str]
 
@@ -19,121 +21,38 @@ class Word(CorpusABC):
     def get_morphs(self) -> Iterator[str]:
         return iter(self.morphs)
 
-    def get_refers(self) -> Iterator[str]:
-        return iter(())
-
-    def get_string(self):
-        return self.identificator
-
-    def list_children(self) -> list:
-        return list()
-
     @property
     def counter(self) -> Counter[str]:
-        immutable_lemmas = tuple(self.lemmas)
+        immutable_lemmas = self.lemmas
         return count_the(elements=immutable_lemmas)
 
 
 class Verse(CorpusABC):
     """An indexed collection of words."""
-
     words: list[Word]
     references: list[str] = []
 
-    def get_lemmas(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_lemmas()
-            for x in self.words
-        )
-
-    def get_morphs(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_morphs()
-            for x in self.words
-        )
-
-    def get_refers(self) -> Iterator[str]:
-        return iter(self.references)
-
-    def get_string(self):
-        return ' '.join([x.get_string() for x in self.words])
-
-    def list_children(self) -> list:
-        return [x.identificator for x in self.words]
-
     @property
-    def counter(self) -> Counter[str]:
-        subcounters = [x.counter for x in self.words]
-        return add_the(counters=subcounters, with_key=self.identificator)
+    def subcorpora(self) -> Iterator[Word]:
+        return iter(self.words)
 
 
 class Chapter(CorpusABC):
     """A mapping of verses."""
-
     verses: dict[int, Verse]
 
-    def get_lemmas(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            verse.get_lemmas()
-            for verse in self.verses.values()
-        )
-
-    def get_morphs(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_morphs() for x in self.verses.values()
-        )
-
-    def get_refers(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_refers()
-            for x in self.verses.values()
-        )
-
-    def get_string(self):
-        return ' '.join([x.get_string() for x in self.verses.values()])
-
-    def list_children(self) -> list:
-        return list(self.verses.keys())
-
     @property
-    def counter(self) -> Counter[str]:
-        subcounters = [x.counter for x in self.verses.values()]
-        return add_the(counters=subcounters, with_key=self.identificator)
+    def subcorpora(self) -> Iterator[Verse]:
+        return iter(self.verses.values())
 
 
 class Book(CorpusABC):
     """A collection of chapters."""
-
     chapters: dict[int, Chapter]
 
-    def get_lemmas(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_lemmas()
-            for x in self.chapters.values()
-        )
-
-    def get_morphs(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_morphs()
-            for x in self.chapters.values()
-        )
-
-    def get_refers(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_refers()
-            for x in self.chapters.values()
-        )
-
-    def get_string(self):
-        return ' '.join([chapter.get_string() for chapter in self.chapters.values()])
-
-    def list_children(self) -> list:
-        return list(self.chapters.keys())
-
     @property
-    def counter(self) -> Counter[str]:
-        subcounters = [x.counter for x in self.chapters.values()]
-        return add_the(counters=subcounters, with_key=self.identificator)
+    def subcorpora(self) -> Iterator[Chapter]:
+        return iter(self.chapters.values())
 
 
 class Bible(CorpusABC):
@@ -141,32 +60,9 @@ class Bible(CorpusABC):
 
     books: dict[str, Book]
 
-    def get_lemmas(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_lemmas()
-            for x in self.books.values()
-        )
-
-    def get_morphs(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_morphs() for x in self.books.values()
-        )
-
-    def get_refers(self) -> Iterator[str]:
-        return itertools.chain.from_iterable(
-            x.get_refers() for x in self.books.values()
-        )
-
-    def get_string(self):
-        return ' '.join([book.get_string() for book in self.books.values()])
-
-    def list_children(self) -> list:
-        return list(self.books.keys())
-
     @property
-    def counter(self) -> Counter[str]:
-        subcounters = [x.counter for x in self.books.values()]
-        return add_the(counters=subcounters, with_key=self.identificator)
+    def subcorpora(self) -> Iterator[Book]:
+        return iter(self.books.values())
 
     def save(self, filename: str, indent: int = 2):
         """Saves the Bible object to the specified JSON file."""

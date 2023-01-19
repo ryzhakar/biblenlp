@@ -1,11 +1,30 @@
+import itertools
 from abc import ABC
 from abc import abstractmethod
+from collections import Counter
 from collections.abc import Iterator
 
 from pydantic import BaseModel
 
+from biblenlp.vectorization.counters import add_the
 
-class CorpusABC(BaseModel, ABC):
+
+class VectorizibleABC(ABC):
+    @abstractmethod
+    def get_lemmas(self) -> Iterator[str]:
+        pass
+
+    @abstractmethod
+    def get_morphs(self) -> Iterator[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def counter(self) -> Counter[str]:
+        pass
+
+
+class CorpusABC(BaseModel, VectorizibleABC):
     """A corpus is a collection of words."""
 
     identificator: str
@@ -13,22 +32,24 @@ class CorpusABC(BaseModel, ABC):
     def __hash__(self):
         return hash(self.identificator)
 
+    @property
     @abstractmethod
+    def subcorpora(self) -> Iterator[VectorizibleABC]:
+        """A dictionary of subcorpora."""
+
     def get_lemmas(self) -> Iterator[str]:
-        pass
+        return itertools.chain.from_iterable(
+            x.get_lemmas()
+            for x in self.subcorpora
+        )
 
-    @abstractmethod
-    def get_refers(self) -> Iterator[str]:
-        pass
-
-    @abstractmethod
     def get_morphs(self) -> Iterator[str]:
-        pass
+        return itertools.chain.from_iterable(
+            x.get_morphs()
+            for x in self.subcorpora
+        )
 
-    @abstractmethod
-    def get_string(self):
-        pass
-
-    @abstractmethod
-    def list_children(self):
-        pass
+    @property
+    def counter(self) -> Counter[str]:
+        subcounters = (x.counter for x in self.subcorpora)
+        return add_the(counters=subcounters, with_key=self.identificator)
