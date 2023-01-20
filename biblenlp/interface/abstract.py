@@ -1,4 +1,5 @@
 import itertools
+import math
 from abc import ABC
 from abc import abstractmethod
 from collections import Counter
@@ -66,3 +67,23 @@ class CorpusABC(BaseModel, VectorizibleABC):
             sets=(x.unique_lemmas for x in self.subcorpora),
             with_key=self.identificator,
         )
+
+    def count_occurences_of(self, *, terms: set[str]) -> Counter[str]:
+        """How many of the subcorpora contain the terms."""
+        term_overlaps = (
+            terms.intersection(x.unique_lemmas)
+            for x in self.subcorpora
+        )
+        all_occurrences_in_subcorpora = itertools.chain.from_iterable(
+            term_overlaps,
+        )
+        return Counter(all_occurrences_in_subcorpora)
+
+    def idf(self, terms: set[str]) -> dict[str, float]:
+        """Inverse document frequency."""
+        occurrences = self.count_occurences_of(terms=terms)
+        subcorpora_count = sum(1 for _ in self.subcorpora)
+        return {
+            term: math.log(subcorpora_count / occurrences[term])
+            for term in occurrences
+        }
