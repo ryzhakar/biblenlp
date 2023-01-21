@@ -33,6 +33,13 @@ class Word(BaseModel, VectorizibleABC):
             with_key=self.identificator,
         )
 
+    def tf(self) -> dict[str, float]:
+        """Term frequency."""
+        return {
+            term: count / sum(self.counter.values())
+            for term, count in self.counter.items()
+        }
+
 
 class Verse(CorpusABC):
     """An indexed collection of words."""

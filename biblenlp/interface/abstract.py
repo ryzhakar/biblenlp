@@ -30,6 +30,10 @@ class VectorizibleABC(ABC):
     def unique_lemmas(self) -> set[str]:
         pass
 
+    @abstractmethod
+    def tf(self) -> dict[str, float]:
+        pass
+
 
 class CorpusABC(BaseModel, VectorizibleABC):
     """A corpus is a collection of words."""
@@ -86,4 +90,11 @@ class CorpusABC(BaseModel, VectorizibleABC):
         return {
             term: math.log(subcorpora_count / occurrences[term])
             for term in occurrences
+        }
+
+    def tf(self) -> dict[str, float]:
+        """Term frequency."""
+        return {
+            term: count / sum(self.counter.values())
+            for term, count in self.counter.items()
         }
