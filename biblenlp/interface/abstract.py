@@ -1,3 +1,4 @@
+from __future__ import annotations
 import itertools
 import math
 from abc import ABC
@@ -6,9 +7,11 @@ from collections import Counter
 from collections.abc import Iterator
 
 from pydantic import BaseModel
+from immutables import Map
 
 from biblenlp.vectorization.counters import add_the
 from biblenlp.vectorization.unique import merge_the
+from biblenlp.vectorization.mappings import combine_the
 
 
 class VectorizibleABC(ABC):
@@ -28,6 +31,11 @@ class VectorizibleABC(ABC):
     @property
     @abstractmethod
     def unique_lemmas(self) -> set[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def lemma_word_mapping(self) -> Map[str, tuple[VectorizibleABC, ...]]:
         pass
 
     @abstractmethod
@@ -72,6 +80,15 @@ class CorpusABC(BaseModel, VectorizibleABC):
             with_key=self.identificator,
         )
 
+    @property
+    def lemma_word_mapping(self) -> Map[str, tuple[VectorizibleABC, ...]]:
+        """A mapping of lemmas to words."""
+        return combine_the(
+            mappings=(x.lemma_word_mapping for x in self.subcorpora),
+            with_key=self.identificator,
+        )
+        
+
     def count_occurences_of(self, *, terms: set[str]) -> Counter[str]:
         """How many of the subcorpora contain the terms."""
         term_overlaps = (
@@ -82,6 +99,7 @@ class CorpusABC(BaseModel, VectorizibleABC):
             term_overlaps,
         )
         return Counter(all_occurrences_in_subcorpora)
+
 
     def idf(self, terms: set[str]) -> dict[str, float]:
         """Inverse document frequency."""

@@ -2,6 +2,7 @@ from collections import Counter
 from collections.abc import Iterator
 
 from pydantic import BaseModel
+from immutables import Map
 
 from biblenlp.interface.abstract import CorpusABC
 from biblenlp.interface.abstract import VectorizibleABC
@@ -14,6 +15,9 @@ class Word(BaseModel, VectorizibleABC):
     identificator: str
     lemmas: list[str]
     morphs: list[str]
+
+    def __hash__(self) -> int:
+        return hash(self.identificator)
 
     def get_lemmas(self) -> Iterator[str]:
         return iter(self.lemmas)
@@ -32,6 +36,10 @@ class Word(BaseModel, VectorizibleABC):
             elements=self.lemmas,
             with_key=self.identificator,
         )
+
+    @property
+    def lemma_word_mapping(self) -> Map[str, tuple[VectorizibleABC, ...]]:
+        return Map(((lemma, (self,)) for lemma in self.lemmas))
 
     def tf(self) -> dict[str, float]:
         """Term frequency."""
