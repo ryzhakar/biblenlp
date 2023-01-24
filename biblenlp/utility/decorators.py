@@ -6,14 +6,17 @@ from typing import TypeVar
 
 SomeData = TypeVar('SomeData')
 Processor = Callable[..., SomeData]
+CACHE: dict[Callable, dict] = {}
 
 
 def cache_by_key(processor: Processor) -> Processor:
     """Caches the result of a function by its key."""
+    global CACHE
 
     @wraps(processor)
     def wrapper(*, with_key: str, **kwargs: Iterable[SomeData]) -> SomeData:
-        cache: dict[str, SomeData] = {}
+        CACHE[processor] = CACHE.get(processor, {})
+        cache: dict[str, SomeData] = CACHE[processor]
         if with_key in cache:
             return cache[with_key]
         result = processor(with_key=with_key, **kwargs)

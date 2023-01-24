@@ -5,21 +5,30 @@ from typing import TypeVar
 
 from immutables import Map
 
-GenericElement = TypeVar("GenericElement")
-
 from biblenlp.utility.decorators import cache_by_key
 
+GenericElement = TypeVar('GenericElement')
+
+
 LemmaToWordsMapping = Map[str, tuple[GenericElement, ...]]
+
+
 def merge_two_mappings(
     bigger_mapping: LemmaToWordsMapping,
     smaller_mapping: LemmaToWordsMapping,
 ) -> LemmaToWordsMapping:
     all_keys = set(bigger_mapping.keys()) | set(smaller_mapping.keys())
     items = iter(
-        (key, tuple(set(itertools.chain(
-            bigger_mapping.get(key, ()),
-            smaller_mapping.get(key, ()),
-        )))) for key in all_keys
+        (
+            key, tuple(
+                set(
+                    itertools.chain(
+                        bigger_mapping.get(key, ()),
+                        smaller_mapping.get(key, ()),
+                    ),
+                ),
+            ),
+        ) for key in all_keys
     )
     return Map(items)
 
@@ -37,6 +46,3 @@ def combine_the(
         Map(),
     )
     return manually_computed_mapping
-    
-
-    
